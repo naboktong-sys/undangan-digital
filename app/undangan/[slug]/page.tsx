@@ -23,6 +23,20 @@ export default async function InvitationPage({ params }: { params: Promise<{ slu
   const MAX_QUOTA = 160;
   const remainingSlots = Math.max(0, MAX_QUOTA - currentTotal);
 
+  const messages = await prisma.guest.findMany({
+    where: {
+      message: { not: null },
+      attendance: { not: "PENDING" },
+    },
+    orderBy: { respondedAt: "desc" },
+    select: {
+      name: true,
+      message: true,
+      attendance: true,
+      respondedAt: true,
+    },
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0b2e1f] via-[#0f3d28] to-black text-yellow-50">
       <section className="text-center pt-16 pb-10 px-6">
@@ -89,6 +103,37 @@ export default async function InvitationPage({ params }: { params: Promise<{ slu
           />
         </div>
       </section>
+
+      {/* Ucapan & Doa */}
+      {messages.length > 0 && (
+        <section className="px-6 pb-16">
+          <p className="text-center text-yellow-100/70 text-sm mb-4">
+            Ucapan &amp; Doa ({messages.length})
+          </p>
+          <div className="max-w-md mx-auto space-y-3 max-h-[400px] overflow-y-auto pr-1">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className="bg-white/5 border border-yellow-600/20 rounded-lg p-4"
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <p className="text-sm font-medium text-yellow-300">{m.name}</p>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full ${
+                      m.attendance === "HADIR"
+                        ? "bg-green-900/40 text-green-400"
+                        : "bg-red-900/40 text-red-400"
+                    }`}
+                  >
+                    {m.attendance === "HADIR" ? "Hadir" : "Tidak Hadir"}
+                  </span>
+                </div>
+                <p className="text-sm text-yellow-50/90 leading-relaxed">{m.message}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <footer className="text-center pb-8 text-xs text-yellow-100/40">
         SAS Center &amp; LPOI - #MenebarManfaat
