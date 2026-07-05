@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import BackgroundMusic from "@/components/BackgroundMusic";
 
 export default function InvitationGate({
   guestName,
@@ -13,7 +14,12 @@ export default function InvitationGate({
   const [opened, setOpened] = useState(false);
 
   if (opened) {
-    return <>{children}</>;
+    return (
+      <>
+        <BackgroundMusic src="/music.mp3" />
+        {children}
+      </>
+    );
   }
 
   return (

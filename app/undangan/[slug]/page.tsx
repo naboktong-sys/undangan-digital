@@ -85,37 +85,12 @@ export default async function InvitationPage({ params }: { params: Promise<{ slu
               value="Deka Hotel, Jl. Mayjen HR. Muhammad No.24, Putat Gede, Kec. Sukomanunggal, Surabaya, Jawa Timur 60189"
             />
             <InfoRow label="Special Performance" value="Boby Al Mahbub (Standup Comedian)" />
-
-            <a
-              href={MAPS_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-elegant-label block text-center text-sm text-yellow-500 hover:text-yellow-400 transition underline underline-offset-4 pt-2"
-            >
-              Buka di Google Maps
-            </a>
           </div>
         </section>
 
         <section className="px-6 pb-12">
           <div className="max-w-md mx-auto rounded-2xl overflow-hidden border border-yellow-600/20 opacity-90">
             <iframe src={MAPS_EMBED_SRC} width="100%" height="230" style={{ border: 0 }} loading="lazy" />
-          </div>
-        </section>
-
-        <section className="px-6 pb-12">
-          <p className="font-elegant-label text-center text-yellow-500/70 text-sm tracking-wide mb-5">
-            Galeri
-          </p>
-          <div className="max-w-md mx-auto grid grid-cols-3 gap-2">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div
-                key={i}
-                className="aspect-square bg-white/[0.03] border border-yellow-600/10 rounded-lg flex items-center justify-center text-yellow-100/20 text-xs"
-              >
-                Foto {i}
-              </div>
-            ))}
           </div>
         </section>
 
