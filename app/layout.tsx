@@ -13,6 +13,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@0;1&family=Playfair+Display:ital@0;1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>{children}</body>
     </html>
   );
