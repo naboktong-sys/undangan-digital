@@ -45,11 +45,44 @@ export default function InvitationGate({
             Ke-73
           </p>
 
-          <p className="text-yellow-100/80 text-sm mt-6">
-            Senin, 20 Juli 2026
-            <br />
-            Pukul 10.00–13.30 WIB
-          </p>
+        <div className="flex justify-center items-start gap-10 mt-8">
+            <div className="flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full border-2 border-yellow-500/70 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="w-7 h-7 text-yellow-400"
+                >
+                  <rect x="3" y="4" width="18" height="17" rx="2" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <rect x="7" y="12" width="3" height="3" fill="currentColor" stroke="none" />
+                </svg>
+              </div>
+              <p className="text-yellow-100 text-sm mt-2 font-medium">20 Juli 2026</p>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full border-2 border-yellow-500/70 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="w-7 h-7 text-yellow-400"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <polyline points="12 7 12 12 15.5 14" />
+                </svg>
+              </div>
+              <p className="text-yellow-100 text-sm mt-2 font-medium">10.00–13.00 WIB</p>
+            </div>
+          </div>
 
           <button
             onClick={() => setOpened(true)}

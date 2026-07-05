@@ -40,7 +40,7 @@ export default async function InvitationPage({ params }: { params: Promise<{ slu
 
   return (
     <InvitationGate guestName={guest.name}>
-      <div className="min-h-screen bg-gradient-to-b from-[#0b2e1f] via-[#0f3d28] to-black text-yellow-50">
+      <div className="min-h-screen bg-gradient-to-b from-black via-[#0a0a0a] to-black text-yellow-50">
         <section className="text-center pt-16 pb-10 px-6">
           <p className="text-yellow-100/70 text-sm tracking-wide">Tasyakuran Harlah ke-73</p>
           <h1 className="text-2xl md:text-3xl font-semibold text-yellow-400 mt-2 leading-snug">
