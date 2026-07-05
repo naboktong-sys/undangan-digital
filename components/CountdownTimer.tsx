@@ -38,16 +38,20 @@ export default function CountdownTimer({ targetDate }: { targetDate: string }) {
   ];
 
   return (
-    <div className="flex gap-3 justify-center">
-      {units.map((u) => (
-        <div
-          key={u.label}
-          className="bg-white/10 backdrop-blur-sm border border-yellow-600/40 rounded-lg px-4 py-3 min-w-[70px] text-center"
-        >
-          <p className="text-2xl font-semibold text-yellow-500">{String(u.value).padStart(2, "0")}</p>
-          <p className="text-xs text-yellow-100/70 mt-1">{u.label}</p>
-        </div>
-      ))}
-    </div>
-  );
+      <div className="flex gap-3 justify-center">
+        {units.map((u) => (
+          <div
+            key={u.label}
+            className="border border-yellow-600/25 rounded-xl px-4 py-3 min-w-[68px] text-center"
+          >
+            <p className="font-elegant-title not-italic text-2xl text-yellow-400">
+              {String(u.value).padStart(2, "0")}
+            </p>
+            <p className="font-elegant-label text-[11px] text-yellow-100/50 mt-1 tracking-widest uppercase">
+              {u.label}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
 }
