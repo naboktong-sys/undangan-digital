@@ -15,7 +15,14 @@ type Guest = {
   message: string | null;
 };
 
-type Stats = { total: number; hadir: number; tidakHadir: number; pending: number };
+type Stats = {
+  total: number;
+  hadir: number;
+  tidakHadir: number;
+  pending: number;
+  quotaUsed: number;
+  quotaMax: number;
+};
 
 export default function DashboardClient({
   initialGuests,
@@ -107,6 +114,33 @@ export default function DashboardClient({
           <StatCard label="Hadir" value={stats.hadir} accent="text-green-600" />
           <StatCard label="Tidak Hadir" value={stats.tidakHadir} accent="text-red-600" />
           <StatCard label="Menunggu" value={stats.pending} accent="text-gray-500" />
+        </div>
+
+        {/* Indikator Kuota */}
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-sm text-gray-500">Kuota Tamu Hadir</p>
+            <p className="text-sm font-medium">
+              {stats.quotaUsed} / {stats.quotaMax}
+            </p>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+            <div
+              className={`h-2.5 rounded-full transition-all ${
+                stats.quotaUsed >= stats.quotaMax
+                  ? "bg-red-500"
+                  : stats.quotaUsed / stats.quotaMax > 0.85
+                  ? "bg-yellow-500"
+                  : "bg-green-500"
+              }`}
+              style={{ width: `${Math.min(100, (stats.quotaUsed / stats.quotaMax) * 100)}%` }}
+            />
+          </div>
+          {stats.quotaUsed >= stats.quotaMax && (
+            <p className="text-xs text-red-500 mt-2">
+              Kuota sudah penuh — tamu baru tidak bisa lagi konfirmasi hadir.
+            </p>
+          )}
         </div>
 
         {/* Form tambah tamu */}
