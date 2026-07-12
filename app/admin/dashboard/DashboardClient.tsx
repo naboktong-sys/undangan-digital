@@ -39,6 +39,12 @@ export default function DashboardClient({
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const [editingGuest, setEditingGuest] = useState<Guest | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
   async function handleAddGuest(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
@@ -73,6 +79,43 @@ export default function DashboardClient({
     setGuests(guests.map((g) => (g.id === id ? { ...g, invited: !invited } : g)));
   }
 
+  function openEditModal(guest: Guest) {
+    setEditingGuest(guest);
+    setEditName(guest.name);
+    setEditCategory(guest.category || "");
+    setEditPhone(guest.phone || "");
+  }
+
+  function closeEditModal() {
+    setEditingGuest(null);
+  }
+
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingGuest || !editName.trim()) return;
+    setEditSaving(true);
+
+    const res = await fetch(`/api/guests/${editingGuest.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: editName.trim(),
+        category: editCategory.trim() || null,
+        phone: editPhone.trim() || null,
+      }),
+    });
+
+    setEditSaving(false);
+
+    if (res.ok) {
+      const updated = await res.json();
+      setGuests(guests.map((g) => (g.id === updated.id ? { ...g, ...updated } : g)));
+      closeEditModal();
+    } else {
+      alert("Gagal menyimpan perubahan, coba lagi.");
+    }
+  }
+
   function copyLink(slug: string, id: string) {
     const url = `${window.location.origin}/undangan/${slug}`;
     navigator.clipboard.writeText(url);
@@ -103,9 +146,17 @@ export default function DashboardClient({
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Dashboard Undangan</h1>
-          <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-black">
-            Logout
-          </button>
+          <div className="flex items-center gap-4">
+            <a
+              href="/api/attendance-list"
+              className="text-sm bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
+            >
+              Cetak Daftar Hadir (PDF)
+            </a>
+            <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-black">
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -155,7 +206,7 @@ export default function DashboardClient({
           />
           <input
             type="text"
-            placeholder="Kategori (opsional)"
+            placeholder="Kategori"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="border rounded px-3 py-2 flex-1 min-w-[150px]"
@@ -212,7 +263,13 @@ export default function DashboardClient({
                   </td>
                   <td className="p-3">{g.guestCount ?? "-"}</td>
                   <td className="p-3 max-w-[200px] truncate text-gray-500">{g.message || "-"}</td>
-                  <td className="p-3 flex gap-2">
+                  <td className="p-3 flex gap-2 flex-wrap">
+                    <button
+                      onClick={() => openEditModal(g)}
+                      className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100"
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => copyLink(g.slug, g.id)}
                       className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200"
@@ -239,6 +296,64 @@ export default function DashboardClient({
           </table>
         </div>
       </div>
+
+      {/* Modal Edit Tamu */}
+      {editingGuest && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={closeEditModal}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-semibold mb-4">Edit Tamu</h2>
+            <form onSubmit={handleSaveEdit}>
+              <label className="text-xs text-gray-500 block mb-1">Nama</label>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full border rounded px-3 py-2 mb-3"
+                required
+              />
+
+              <label className="text-xs text-gray-500 block mb-1">Kategori / Instansi</label>
+              <input
+                type="text"
+                value={editCategory}
+                onChange={(e) => setEditCategory(e.target.value)}
+                className="w-full border rounded px-3 py-2 mb-3"
+              />
+
+              <label className="text-xs text-gray-500 block mb-1">No. WA</label>
+              <input
+                type="text"
+                value={editPhone}
+                onChange={(e) => setEditPhone(e.target.value)}
+                className="w-full border rounded px-3 py-2 mb-5"
+              />
+
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="text-sm px-4 py-2 rounded border text-gray-600 hover:bg-gray-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={editSaving}
+                  className="text-sm px-4 py-2 rounded bg-black text-white hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {editSaving ? "Menyimpan..." : "Simpan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

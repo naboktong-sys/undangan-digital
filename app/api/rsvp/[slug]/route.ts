@@ -5,7 +5,7 @@ const MAX_QUOTA = 160;
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { attendance, guestCount, message } = await req.json();
+  const { attendance, message } = await req.json();
 
   if (!["HADIR", "TIDAK_HADIR"].includes(attendance)) {
     return NextResponse.json({ error: "Status kehadiran tidak valid" }, { status: 400 });
@@ -17,10 +17,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
   }
 
   if (attendance === "HADIR") {
-    const newCount = Number(guestCount) || 1;
-
-    // Hitung total tamu yang sudah konfirmasi hadir, TIDAK termasuk tamu ini sendiri
-    // (jaga-jaga kalau tamu submit ulang/edit jawabannya)
     const aggregate = await prisma.guest.aggregate({
       where: { attendance: "HADIR", id: { not: guest.id } },
       _sum: { guestCount: true },
@@ -28,12 +24,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
 
     const currentTotal = aggregate._sum.guestCount || 0;
 
-    if (currentTotal + newCount > MAX_QUOTA) {
+    if (currentTotal + 1 > MAX_QUOTA) {
       return NextResponse.json(
-        {
-          error: "QUOTA_FULL",
-          message: "Mohon maaf, kuota tamu untuk acara ini sudah penuh.",
-        },
+        { error: "QUOTA_FULL", message: "Mohon maaf, kuota tamu untuk acara ini sudah penuh." },
         { status: 409 }
       );
     }
@@ -43,7 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     where: { slug },
     data: {
       attendance,
-      guestCount: attendance === "HADIR" ? Number(guestCount) || 1 : 0,
+      guestCount: attendance === "HADIR" ? 1 : 0,
       message: message || null,
       respondedAt: new Date(),
     },

@@ -42,12 +42,12 @@ export default function CountdownTimer({ targetDate }: { targetDate: string }) {
         {units.map((u) => (
           <div
             key={u.label}
-            className="border border-yellow-600/25 rounded-xl px-4 py-3 min-w-[68px] text-center"
+            className="border border-amber-700/40 bg-white/50 rounded-xl px-4 py-3 min-w-[68px] text-center"
           >
-            <p className="font-elegant-title not-italic text-2xl text-yellow-400">
+            <p className="font-elegant-title not-italic text-3xl text-amber-800 font-semibold">
               {String(u.value).padStart(2, "0")}
             </p>
-            <p className="font-elegant-label text-[11px] text-yellow-100/50 mt-1 tracking-widest uppercase">
+            <p className="font-elegant-label text-xs text-amber-900/80 mt-1 tracking-widest uppercase font-medium">
               {u.label}
             </p>
           </div>
