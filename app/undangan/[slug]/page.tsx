@@ -78,8 +78,8 @@ export default async function InvitationPage({ params }: { params: Promise<{ slu
 
         <section className="px-6 pb-12">
           <div className="max-w-md mx-auto border-y border-amber-500/30 py-8 space-y-6">
-            <InfoRow label="Hari, Tanggal" value="Sabtu, 8 Agustus 2026" />
-            <InfoRow label="Waktu" value="13.00 WIB - selesai" />
+            <InfoRow label="Hari, Tanggal" value="Jumat, 14 Agustus 2026" />
+            <InfoRow label="Waktu" value="18.00 WIB - selesai" />
             <InfoRow
               label="Lokasi"
               value="Deka Hotel, Jl. Mayjen HR. Muhammad No.24, Putat Gede, Kec. Sukomanunggal, Surabaya, Jawa Timur 60189"

@@ -140,7 +140,7 @@ export async function GET() {
     });
     y -= 16;
 
-    const meta = "Sabtu, 8 Agustus 2026  \u2022  Deka Hotel, Surabaya";
+    const meta = "Jumat, 14 Agustus 2026  \u2022  Deka Hotel, Surabaya";
     page.drawText(meta, {
       x: pageWidth / 2 - fontItalic.widthOfTextAtSize(meta, 9.5) / 2,
       y,

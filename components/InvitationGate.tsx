@@ -60,7 +60,7 @@ export default function InvitationGate({
             </svg>
           </div>
           <p className="text-[#0f3d28] text-base font-medium mt-3 tracking-wide" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-            Sabtu, 8 Agustus 2026
+            Jumat, 14 Agustus 2026
           </p>
         </div>
 
