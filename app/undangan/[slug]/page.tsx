@@ -5,7 +5,7 @@ import CountdownTimer from "@/components/CountdownTimer";
 import RsvpForm from "@/components/RsvpForm";
 import InvitationGate from "@/components/InvitationGate";
 
-const EVENT_DATE = "2026-08-08T13:00:00+07:00";
+const EVENT_DATE = "2026-08-14T18:00:00+07:00";
 const MAPS_EMBED_SRC = "https://www.google.com/maps?q=Deka+Hotel+Jl.+Mayjen+HR.+Muhammad+No.24+Surabaya&output=embed";
 const MAPS_LINK = "https://maps.app.goo.gl/search/Deka+Hotel+Surabaya";
 
