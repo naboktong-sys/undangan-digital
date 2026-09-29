@@ -31,6 +31,7 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots, messag
       title={bookTitle}
       tagline={d.author ? `oleh ${d.author}` : undefined}
       dateLabel={dateLabel}
+      secondLogoSrc="/lpoi-logo.png"
     >
       <div className="min-h-screen bg-gradient-to-b from-[#fdfbf3] via-[#faf6e8] to-[#f5efd8] text-[#1c3d2e]">
         <div className="h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />

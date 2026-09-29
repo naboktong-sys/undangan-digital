@@ -11,6 +11,7 @@ export default function InvitationGate({
   tagline,
   dateLabel,
   logoSrc = "/sas-logo-green.png",
+  secondLogoSrc,
   musicSrc = "/music.mp3",
   children,
 }: {
@@ -20,6 +21,7 @@ export default function InvitationGate({
   tagline?: string;
   dateLabel: string;
   logoSrc?: string;
+  secondLogoSrc?: string; // logo kedua, ditampilkan bersebelahan dengan logo utama
   musicSrc?: string;
   children: React.ReactNode;
 }) {
@@ -40,9 +42,20 @@ export default function InvitationGate({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-[#fdfbf3] via-[#faf6e8] to-[#f2ecd4]">
       <div className="relative w-full min-h-full max-w-md mx-auto flex flex-col items-center justify-center px-8 py-8 text-center">
-        <div className="relative w-32 h-20 mb-6">
-          <Image src={logoSrc} alt="Logo penyelenggara" fill className="object-contain" />
-        </div>
+        {secondLogoSrc ? (
+          <div className="flex items-center justify-center gap-5 mb-6">
+            <div className="relative w-24 h-24">
+              <Image src={logoSrc} alt="Logo penyelenggara" fill className="object-contain" />
+            </div>
+            <div className="relative w-24 h-24">
+              <Image src={secondLogoSrc} alt="Logo penyelenggara" fill className="object-contain" />
+            </div>
+          </div>
+        ) : (
+          <div className="relative w-32 h-20 mb-6">
+            <Image src={logoSrc} alt="Logo penyelenggara" fill className="object-contain" />
+          </div>
+        )}
 
         <p className="text-amber-800 text-xl tracking-wide font-medium" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
           {eyebrow}
