@@ -12,6 +12,25 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
+enum EventType {
+  TASYAKURAN
+  BEDAH_BUKU
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  name      String
+  type      EventType
+  startsAt  DateTime
+  location  String
+  mapsQuery String?
+  quota     Int       @default(100)
+  // Konten khusus per jenis acara (judul buku, pembicara, rundown, dll.)
+  details   Json?
+  createdAt DateTime  @default(now())
+  guests    Guest[]
+}
+
 model Guest {
   id          String     @id @default(cuid())
   slug        String     @unique
@@ -22,8 +41,15 @@ model Guest {
   attendance  Attendance @default(PENDING)
   guestCount  Int?
   message     String?
+  // Data RSVP tambahan per jenis acara (mis. jumlah pesanan buku, pertanyaan)
+  extra       Json?
   respondedAt DateTime?
   createdAt   DateTime   @default(now())
+
+  eventId     String
+  event       Event      @relation(fields: [eventId], references: [id])
+
+  @@index([eventId])
 }
 
 enum Attendance {

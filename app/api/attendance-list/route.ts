@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "pdf-lib";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { formatEventDate } from "@/lib/events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,11 +28,27 @@ function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: numbe
   return lines.length > 0 ? lines : [""];
 }
 
-export async function GET() {
+// pdf-lib (font standar) hanya mendukung karakter Latin-1; buang karakter lain agar tidak error
+function pdfSafe(text: string): string {
+  return text.replace(/[^\x20-\x7E\u00A0-\u00FF\u2013\u2014\u2022]/g, "");
+}
+
+export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const eventId = req.nextUrl.searchParams.get("eventId");
+  const event = eventId
+    ? await prisma.event.findUnique({ where: { id: eventId } })
+    : await prisma.event.findFirst({ orderBy: { createdAt: "desc" } });
+  if (!event) return NextResponse.json({ error: "Acara tidak ditemukan" }, { status: 404 });
+
+  const eventName = pdfSafe(event.name);
+  const eventDateLabel = pdfSafe(formatEventDate(event.startsAt));
+  const eventPlace = pdfSafe(event.location.split(",")[0].trim());
+
   const guests = await prisma.guest.findMany({
+    where: { eventId: event.id },
     orderBy: { name: "asc" },
   });
 
@@ -43,7 +60,7 @@ export async function GET() {
   const pageWidth = 595.28;
   const pageHeight = 841.89;
   const margin = 50;
-  const fullHeaderHeight = 130;
+  const fullHeaderHeight = 145;
   const continuationHeaderHeight = 55;
   const footerSpace = 40;
   const fontSize = 11;
@@ -131,16 +148,19 @@ export async function GET() {
     });
     y -= 22;
 
-    const subtitle = "Tasyakuran Harlah ke-73 Abuya Prof. Dr. KH. Said Aqil Siroj, M.A.";
-    page.drawText(subtitle, {
-      x: pageWidth / 2 - font.widthOfTextAtSize(subtitle, 11) / 2,
-      y,
-      size: 11,
-      font,
-    });
-    y -= 16;
+    const subtitleLines = wrapText(eventName, font, 11, tableRight - margin - 20);
+    for (const line of subtitleLines.slice(0, 2)) {
+      page.drawText(line, {
+        x: pageWidth / 2 - font.widthOfTextAtSize(line, 11) / 2,
+        y,
+        size: 11,
+        font,
+      });
+      y -= 14;
+    }
+    y -= 2;
 
-    const meta = "Jumat, 14 Agustus 2026  \u2022  Deka Hotel, Surabaya";
+    const meta = `${eventDateLabel}  \u2022  ${eventPlace}`;
     page.drawText(meta, {
       x: pageWidth / 2 - fontItalic.widthOfTextAtSize(meta, 9.5) / 2,
       y,
@@ -265,11 +285,17 @@ export async function GET() {
   });
 
   const pdfBytes = await pdfDoc.save();
+  const fileSlug =
+    event.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "acara";
 
   return new NextResponse(Buffer.from(pdfBytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="daftar-hadir-tasyakuran.pdf"',
+      "Content-Disposition": `attachment; filename="daftar-hadir-${fileSlug}.pdf"`,
     },
   });
 }

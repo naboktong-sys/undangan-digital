@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import EventModal, { TYPE_LABEL, type EventItem } from "./EventModal";
 
 type Guest = {
   id: string;
@@ -13,6 +14,7 @@ type Guest = {
   attendance: "PENDING" | "HADIR" | "TIDAK_HADIR";
   guestCount: number | null;
   message: string | null;
+  extra: unknown;
 };
 
 type Stats = {
@@ -33,14 +35,25 @@ function maskPhone(phone: string): string {
   return `${start}${"•".repeat(middleLength)}${end}`;
 }
 
+function getBookExtra(guest: Guest): { bookQty?: number; question?: string } {
+  const e = guest.extra;
+  return e && typeof e === "object" && !Array.isArray(e) ? (e as { bookQty?: number; question?: string }) : {};
+}
+
 export default function DashboardClient({
+  events,
+  currentEvent,
   initialGuests,
   stats,
 }: {
+  events: EventItem[];
+  currentEvent: EventItem | null;
   initialGuests: Guest[];
   stats: Stats;
 }) {
   const router = useRouter();
+  const [eventModal, setEventModal] = useState<"create" | "edit" | null>(null);
+  const isBook = currentEvent?.type === "BEDAH_BUKU";
   const [guests, setGuests] = useState(initialGuests);
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -57,14 +70,20 @@ export default function DashboardClient({
 
   async function handleAddGuest(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !currentEvent) return;
     setLoading(true);
 
     const res = await fetch("/api/guests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, category, phone }),
+      body: JSON.stringify({ name, category, phone, eventId: currentEvent.id }),
     });
+
+    if (!res.ok) {
+      setLoading(false);
+      alert("Gagal menambah tamu, coba lagi.");
+      return;
+    }
 
     const newGuest = await res.json();
     setGuests([newGuest, ...guests]);
@@ -167,10 +186,49 @@ export default function DashboardClient({
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-          <h1 className="text-xl md:text-2xl font-semibold">Dashboard Undangan</h1>
+          <div>
+            <h1 className="text-xl md:text-2xl font-semibold">Dashboard Undangan</h1>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              {events.length > 0 && (
+                <select
+                  value={currentEvent?.id ?? ""}
+                  onChange={(e) => router.push(`/admin/dashboard?event=${e.target.value}`)}
+                  className="border rounded px-2 py-1.5 text-sm bg-white max-w-[260px] md:max-w-[380px]"
+                >
+                  {events.map((ev) => (
+                    <option key={ev.id} value={ev.id}>
+                      {ev.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {currentEvent && (
+                <span className="text-[11px] px-2 py-1 rounded bg-amber-100 text-amber-800 whitespace-nowrap">
+                  {TYPE_LABEL[currentEvent.type]}
+                </span>
+              )}
+              {currentEvent && (
+                <button
+                  onClick={() => setEventModal("edit")}
+                  className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1.5 rounded hover:bg-blue-100 whitespace-nowrap"
+                >
+                  Edit Acara
+                </button>
+              )}
+              <button
+                onClick={() => setEventModal("create")}
+                className="text-xs bg-gray-100 px-2.5 py-1.5 rounded hover:bg-gray-200 whitespace-nowrap"
+              >
+                + Acara Baru
+              </button>
+            </div>
+            {!currentEvent && (
+              <p className="text-sm text-gray-500 mt-2">Belum ada acara. Buat acara dulu untuk mulai menambah tamu.</p>
+            )}
+          </div>
           <div className="flex items-center gap-3 md:gap-4">
             <a
-              href="/api/attendance-list"
+              href={`/api/attendance-list${currentEvent ? `?eventId=${currentEvent.id}` : ""}`}
               className="text-xs md:text-sm bg-black text-white px-3 py-1.5 md:px-4 md:py-2 rounded hover:bg-gray-800 whitespace-nowrap"
             >
               Cetak Daftar Hadir
@@ -260,6 +318,8 @@ export default function DashboardClient({
                 <th className="px-3 py-2.5">Kirim</th>
                 <th className="px-3 py-2.5">RSVP</th>
                 <th className="px-3 py-2.5">Jml</th>
+                {isBook && <th className="px-3 py-2.5">Buku</th>}
+                {isBook && <th className="px-3 py-2.5">Pertanyaan</th>}
                 <th className="px-3 py-2.5">Ucapan</th>
                 <th className="px-3 py-2.5">Aksi</th>
               </tr>
@@ -304,6 +364,15 @@ export default function DashboardClient({
                       </span>
                     </td>
                     <td className="px-3 py-2.5">{g.guestCount ?? "-"}</td>
+                    {isBook && <td className="px-3 py-2.5">{getBookExtra(g).bookQty || "-"}</td>}
+                    {isBook && (
+                      <td
+                        className="px-3 py-2.5 max-w-[160px] truncate text-gray-500"
+                        title={getBookExtra(g).question}
+                      >
+                        {getBookExtra(g).question || "-"}
+                      </td>
+                    )}
                     <td className="px-3 py-2.5 max-w-[160px] truncate text-gray-500">{g.message || "-"}</td>
                     <td className="px-3 py-2.5">
                       <div className="flex gap-1.5 flex-wrap">
@@ -332,7 +401,7 @@ export default function DashboardClient({
               })}
               {guests.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-6 text-center text-gray-400">
+                  <td colSpan={isBook ? 10 : 8} className="p-6 text-center text-gray-400">
                     Belum ada tamu, tambahkan lewat form di atas.
                   </td>
                 </tr>
@@ -386,6 +455,7 @@ export default function DashboardClient({
                     {g.invited ? "Terkirim" : "Belum Kirim"}
                   </button>
                   <span>Jml Hadir: {g.guestCount ?? "-"}</span>
+                  {isBook && getBookExtra(g).bookQty ? <span>Buku: {getBookExtra(g).bookQty}</span> : null}
                 </div>
 
                 {g.message && (
@@ -417,6 +487,11 @@ export default function DashboardClient({
           })}
         </div>
       </div>
+
+      {/* Modal Acara (buat / edit) */}
+      {eventModal && (
+        <EventModal mode={eventModal} event={currentEvent} onClose={() => setEventModal(null)} />
+      )}
 
       {/* Modal Edit Tamu */}
       {editingGuest && (

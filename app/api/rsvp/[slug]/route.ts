@@ -1,34 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-
-const MAX_QUOTA = 160;
+import { getDetails, getRemainingSlots } from "@/lib/events";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { attendance, message } = await req.json();
+  const { attendance, message, guestCount, bookQty, question } = await req.json();
 
   if (!["HADIR", "TIDAK_HADIR"].includes(attendance)) {
     return NextResponse.json({ error: "Status kehadiran tidak valid" }, { status: 400 });
   }
 
-  const guest = await prisma.guest.findUnique({ where: { slug } });
+  const guest = await prisma.guest.findUnique({ where: { slug }, include: { event: true } });
   if (!guest) {
     return NextResponse.json({ error: "Undangan tidak ditemukan" }, { status: 404 });
   }
 
+  const { event } = guest;
+  const details = getDetails(event);
+  const maxGuests = Math.max(1, Number(details.maxGuests) || 1);
+
+  let count = 0;
+  let extra: Prisma.InputJsonValue | typeof Prisma.DbNull = Prisma.DbNull;
+
   if (attendance === "HADIR") {
-    const aggregate = await prisma.guest.aggregate({
-      where: { attendance: "HADIR", id: { not: guest.id } },
-      _sum: { guestCount: true },
-    });
+    count = Math.min(maxGuests, Math.max(1, Math.floor(Number(guestCount)) || 1));
 
-    const currentTotal = aggregate._sum.guestCount || 0;
-
-    if (currentTotal + 1 > MAX_QUOTA) {
+    const remaining = await getRemainingSlots(event.id, event.quota, guest.id);
+    if (count > remaining) {
       return NextResponse.json(
-        { error: "QUOTA_FULL", message: "Mohon maaf, kuota tamu untuk acara ini sudah penuh." },
+        {
+          error: "QUOTA_FULL",
+          message:
+            remaining > 0
+              ? `Mohon maaf, sisa kuota hanya ${remaining} kursi.`
+              : "Mohon maaf, kuota tamu untuk acara ini sudah penuh.",
+        },
         { status: 409 }
       );
+    }
+
+    if (event.type === "BEDAH_BUKU") {
+      const qty = details.allowPreorder ? Math.min(10, Math.max(0, Math.floor(Number(bookQty)) || 0)) : 0;
+      const q = typeof question === "string" ? question.trim().slice(0, 300) : "";
+      extra = { bookQty: qty, ...(q ? { question: q } : {}) };
     }
   }
 
@@ -36,8 +51,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     where: { slug },
     data: {
       attendance,
-      guestCount: attendance === "HADIR" ? 1 : 0,
+      guestCount: count,
       message: message || null,
+      extra,
       respondedAt: new Date(),
     },
   });

@@ -6,9 +6,21 @@ import BackgroundMusic from "@/components/BackgroundMusic";
 
 export default function InvitationGate({
   guestName,
+  eyebrow,
+  title,
+  tagline,
+  dateLabel,
+  logoSrc = "/sas-logo-green.png",
+  musicSrc = "/music.mp3",
   children,
 }: {
   guestName: string;
+  eyebrow: string;
+  title: string;
+  tagline?: string;
+  dateLabel: string;
+  logoSrc?: string;
+  musicSrc?: string;
   children: React.ReactNode;
 }) {
   const [opened, setOpened] = useState(false);
@@ -16,31 +28,36 @@ export default function InvitationGate({
   if (opened) {
     return (
       <>
-        <BackgroundMusic src="/music.mp3" />
+        <BackgroundMusic src={musicSrc} />
         {children}
       </>
     );
   }
 
+  // Judul panjang (mis. judul buku) diperkecil supaya tidak keluar layar
+  const titleSize = title.length > 40 ? "text-3xl" : title.length > 24 ? "text-4xl" : "text-5xl";
+
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#fdfbf3] via-[#faf6e8] to-[#f2ecd4]">
-      <div className="relative w-full h-full max-w-md mx-auto flex flex-col items-center justify-center px-8 text-center">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-[#fdfbf3] via-[#faf6e8] to-[#f2ecd4]">
+      <div className="relative w-full min-h-full max-w-md mx-auto flex flex-col items-center justify-center px-8 py-8 text-center">
         <div className="relative w-32 h-20 mb-6">
-          <Image src="/sas-logo-green.png" alt="SAS Center" fill className="object-contain" />
+          <Image src={logoSrc} alt="Logo penyelenggara" fill className="object-contain" />
         </div>
 
         <p className="text-amber-800 text-xl tracking-wide font-medium" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-          Tasyakuran Hari Lahir
+          {eyebrow}
         </p>
         <h1
-          className="text-[#0f3d28] text-5xl mt-2 leading-tight font-semibold"
+          className={`text-[#0f3d28] ${titleSize} mt-2 leading-tight font-semibold`}
           style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic" }}
         >
-          Abuya Said Aqil Siroj
+          {title}
         </h1>
-        <p className="text-amber-800 text-3xl mt-1 font-medium" style={{ fontFamily: "'Playfair Display', serif" }}>
-          Ke-73
-        </p>
+        {tagline && (
+          <p className="text-amber-800 text-3xl mt-1 font-medium" style={{ fontFamily: "'Playfair Display', serif" }}>
+            {tagline}
+          </p>
+        )}
 
         <div className="flex flex-col items-center mt-8">
           <div className="w-16 h-16 rounded-full border-2 border-amber-700/60 flex items-center justify-center bg-white/60">
@@ -60,7 +77,7 @@ export default function InvitationGate({
             </svg>
           </div>
           <p className="text-[#0f3d28] text-base font-medium mt-3 tracking-wide" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-            Jumat, 14 Agustus 2026
+            {dateLabel}
           </p>
         </div>
 

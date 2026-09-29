@@ -6,18 +6,28 @@ export default function RsvpForm({
   slug,
   alreadyResponded,
   remainingSlots,
+  maxGuests = 1,
+  bookOptions = null,
 }: {
   slug: string;
   alreadyResponded: boolean;
   remainingSlots: number;
+  // jumlah orang maksimal per undangan (bawaan 1)
+  maxGuests?: number;
+  // diisi hanya untuk acara Launching & Bedah Buku
+  bookOptions?: { allowPreorder: boolean; bookPrice?: string } | null;
 }) {
   const [attendance, setAttendance] = useState<"HADIR" | "TIDAK_HADIR" | null>(null);
   const [message, setMessage] = useState("");
+  const [guestCount, setGuestCount] = useState(1);
+  const [bookQty, setBookQty] = useState(0);
+  const [question, setQuestion] = useState("");
   const [submitted, setSubmitted] = useState(alreadyResponded);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const quotaFull = remainingSlots <= 0 && !alreadyResponded;
+  const maxSelectable = Math.max(1, Math.min(maxGuests, remainingSlots));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,7 +38,13 @@ export default function RsvpForm({
     const res = await fetch(`/api/rsvp/${slug}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ attendance, message }),
+      body: JSON.stringify({
+        attendance,
+        message,
+        guestCount: Math.min(guestCount, maxSelectable),
+        bookQty,
+        question,
+      }),
     });
 
     setLoading(false);
@@ -62,10 +78,17 @@ export default function RsvpForm({
     );
   }
 
+  const inputClass =
+    "w-full bg-white border border-yellow-600/60 rounded-lg px-3 py-2 text-amber-950 text-base placeholder:text-amber-700/50";
+
   return (
     <form onSubmit={handleSubmit} className="max-w-md mx-auto">
       <p className="text-center text-amber-900 text-lg font-medium mb-1">Konfirmasi kehadiran Anda</p>
-      <p className="text-center text-amber-800/70 text-sm mb-4">Undangan ini berlaku untuk 1 orang</p>
+      <p className="text-center text-amber-800/70 text-sm mb-4">
+        {maxGuests > 1
+          ? `Undangan ini berlaku untuk maksimal ${maxGuests} orang`
+          : "Undangan ini berlaku untuk 1 orang"}
+      </p>
 
       {errorMsg && (
         <p className="text-center text-red-700 text-base mb-4 bg-red-50 border border-red-300 rounded-lg py-2 px-3">
@@ -98,13 +121,62 @@ export default function RsvpForm({
         </button>
       </div>
 
+      {attendance === "HADIR" && maxSelectable > 1 && (
+        <div className="mb-4">
+          <label className="text-base text-amber-900 font-medium block mb-1">Jumlah orang yang hadir</label>
+          <select
+            value={Math.min(guestCount, maxSelectable)}
+            onChange={(e) => setGuestCount(Number(e.target.value))}
+            className={inputClass}
+          >
+            {Array.from({ length: maxSelectable }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n} orang
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {attendance === "HADIR" && bookOptions?.allowPreorder && (
+        <div className="mb-4">
+          <label className="text-base text-amber-900 font-medium block mb-1">
+            Pesan buku (opsional){bookOptions.bookPrice ? ` — ${bookOptions.bookPrice}/eksemplar` : ""}
+          </label>
+          <select value={bookQty} onChange={(e) => setBookQty(Number(e.target.value))} className={inputClass}>
+            <option value={0}>Tidak, terima kasih</option>
+            {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n} eksemplar
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {attendance === "HADIR" && bookOptions && (
+        <div className="mb-4">
+          <label className="text-base text-amber-900 font-medium block mb-1">
+            Pertanyaan untuk pembicara (opsional)
+          </label>
+          <textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            rows={2}
+            maxLength={300}
+            className={inputClass}
+            placeholder="Tuliskan pertanyaan Anda untuk sesi diskusi..."
+          />
+        </div>
+      )}
+
       <div className="mb-4">
         <label className="text-base text-amber-900 font-medium block mb-1">Ucapan & doa (opsional)</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={3}
-          className="w-full bg-white border border-yellow-600/60 rounded-lg px-3 py-2 text-amber-950 text-base placeholder:text-amber-700/50"
+          className={inputClass}
           placeholder="Tuliskan ucapan atau doa Anda..."
         />
       </div>
