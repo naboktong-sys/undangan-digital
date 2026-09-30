@@ -90,17 +90,20 @@ function buildInitial(event: EventItem | null): FormState {
 
 const inputClass = "w-full border rounded px-3 py-2 text-sm bg-white";
 
+// `wide` = memenuhi 2 kolom di desktop (md ke atas); default setengah lebar.
 function Field({
   label,
   hint,
+  wide,
   children,
 }: {
   label: string;
   hint?: string;
+  wide?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className="mb-3">
+    <div className={`mb-3 ${wide ? "md:col-span-2" : ""}`}>
       <label className="text-xs text-gray-500 block mb-1">{label}</label>
       {children}
       {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
@@ -201,37 +204,48 @@ export default function EventModal({
   const isBook = form.type === "BEDAH_BUKU";
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-start md:items-center justify-center z-50 p-4 overflow-y-auto" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-3 md:p-6"
+      onClick={onClose}
+    >
+      {/* Kartu modal: lebar bertahap (mobile → tablet → desktop), tinggi dibatasi & isi bisa di-scroll */}
       <div
-        className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 my-4"
+        className="bg-white rounded-lg shadow-lg w-full max-w-lg md:max-w-3xl lg:max-w-4xl max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold mb-4">{mode === "edit" ? "Edit Acara" : "Acara Baru"}</h2>
+        <div className="px-5 md:px-8 pt-5 md:pt-6 pb-3 border-b shrink-0">
+          <h2 className="text-lg font-semibold">{mode === "edit" ? "Edit Acara" : "Acara Baru"}</h2>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <Field label="Jenis acara" hint={mode === "edit" ? "Jenis acara tidak bisa diubah setelah dibuat." : undefined}>
-            <select
-              value={form.type}
-              onChange={(e) => set("type", e.target.value as EventTypeValue)}
-              disabled={mode === "edit"}
-              className={`${inputClass} disabled:bg-gray-100`}
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+          {/* Badan form: scroll di sini, 2 kolom di desktop */}
+          <div className="flex-1 overflow-y-auto px-5 md:px-8 py-4 md:grid md:grid-cols-2 md:gap-x-5 md:content-start">
+            <Field
+              wide
+              label="Jenis acara"
+              hint={mode === "edit" ? "Jenis acara tidak bisa diubah setelah dibuat." : undefined}
             >
-              <option value="BEDAH_BUKU">{TYPE_LABEL.BEDAH_BUKU}</option>
-              <option value="TASYAKURAN">{TYPE_LABEL.TASYAKURAN}</option>
-            </select>
-          </Field>
+              <select
+                value={form.type}
+                onChange={(e) => set("type", e.target.value as EventTypeValue)}
+                disabled={mode === "edit"}
+                className={`${inputClass} disabled:bg-gray-100`}
+              >
+                <option value="BEDAH_BUKU">{TYPE_LABEL.BEDAH_BUKU}</option>
+                <option value="TASYAKURAN">{TYPE_LABEL.TASYAKURAN}</option>
+              </select>
+            </Field>
 
-          <Field label="Nama acara (untuk dashboard & daftar hadir)">
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-              className={inputClass}
-              required
-            />
-          </Field>
+            <Field wide label="Nama acara (untuk dashboard & daftar hadir)">
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => set("name", e.target.value)}
+                className={inputClass}
+                required
+              />
+            </Field>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3">
             <Field label="Tanggal & waktu (WIB)">
               <input
                 type="datetime-local"
@@ -251,150 +265,210 @@ export default function EventModal({
                 required
               />
             </Field>
+
+            <Field wide label="Lokasi (alamat lengkap)">
+              <textarea
+                value={form.location}
+                onChange={(e) => set("location", e.target.value)}
+                rows={2}
+                className={inputClass}
+                required
+              />
+            </Field>
+
+            <Field
+              wide={isBook}
+              label="Kata kunci Google Maps (opsional)"
+              hint="Kalau kosong, alamat lokasi dipakai untuk peta."
+            >
+              <input
+                type="text"
+                value={form.mapsQuery}
+                onChange={(e) => set("mapsQuery", e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+
+            {!isBook && (
+              <Field label="Maks. orang per undangan" hint="1 = undangan hanya untuk satu orang.">
+                <input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={form.maxGuests}
+                  onChange={(e) => set("maxGuests", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            )}
+
+            <div className="md:col-span-2">
+              <hr className="my-3" />
+              <p className="text-xs font-semibold text-gray-600 mb-3">
+                Konten undangan — {TYPE_LABEL[form.type]}
+              </p>
+            </div>
+
+            <Field label="Label di atas judul">
+              <input
+                type="text"
+                value={form.heading}
+                onChange={(e) => set("heading", e.target.value)}
+                className={inputClass}
+                placeholder={isBook ? "Launching & Bedah Buku" : "Tasyakuran Harlah ke-73"}
+              />
+            </Field>
+
+            {isBook ? (
+              <>
+                <Field label="Judul buku">
+                  <input
+                    type="text"
+                    value={form.bookTitle}
+                    onChange={(e) => set("bookTitle", e.target.value)}
+                    className={inputClass}
+                    required
+                  />
+                </Field>
+                <Field label="Penulis">
+                  <input
+                    type="text"
+                    value={form.author}
+                    onChange={(e) => set("author", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Moderator">
+                  <input
+                    type="text"
+                    value={form.moderator}
+                    onChange={(e) => set("moderator", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field wide label="Sinopsis singkat">
+                  <textarea
+                    value={form.synopsis}
+                    onChange={(e) => set("synopsis", e.target.value)}
+                    rows={3}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field
+                  wide
+                  label="Sampul buku (path di folder public)"
+                  hint="Taruh file gambar di folder public, lalu isi path-nya, mis. /buku-cover.jpg"
+                >
+                  <input
+                    type="text"
+                    value={form.cover}
+                    onChange={(e) => set("cover", e.target.value)}
+                    className={inputClass}
+                    placeholder="/buku-cover.jpg"
+                  />
+                </Field>
+                <Field label="Pembicara / pembedah" hint="Satu orang per baris, format: Nama | Peran">
+                  <textarea
+                    value={form.speakers}
+                    onChange={(e) => set("speakers", e.target.value)}
+                    rows={5}
+                    className={inputClass}
+                    placeholder={"Dr. Fulan, M.A. | Pembedah\nProf. Fulanah | Penulis"}
+                  />
+                </Field>
+                <Field label="Susunan acara" hint="Satu agenda per baris, format: Jam | Kegiatan">
+                  <textarea
+                    value={form.rundown}
+                    onChange={(e) => set("rundown", e.target.value)}
+                    rows={5}
+                    className={inputClass}
+                    placeholder={"18.30 | Pembukaan\n19.00 | Launching buku\n19.30 | Bedah buku\n20.30 | Tanya jawab & tanda tangan buku"}
+                  />
+                </Field>
+              </>
+            ) : (
+              <>
+                <Field label="Special performance (opsional)">
+                  <input
+                    type="text"
+                    value={form.performers}
+                    onChange={(e) => set("performers", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field wide label="Judul utama" hint="Boleh lebih dari satu baris.">
+                  <textarea
+                    value={form.title}
+                    onChange={(e) => set("title", e.target.value)}
+                    rows={2}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field wide label="Flyer (path di folder public)" hint="Mis. /flyer.jpeg">
+                  <input
+                    type="text"
+                    value={form.flyer}
+                    onChange={(e) => set("flyer", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <div className="md:col-span-2">
+                  <p className="text-[11px] text-gray-400 mb-2">
+                    Teks layar pembuka (opsional — kalau kosong mengikuti judul di atas)
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3">
+                    <Field label="Baris atas">
+                      <input
+                        type="text"
+                        value={form.gateEyebrow}
+                        onChange={(e) => set("gateEyebrow", e.target.value)}
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Judul besar">
+                      <input
+                        type="text"
+                        value={form.gateTitle}
+                        onChange={(e) => set("gateTitle", e.target.value)}
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="Baris bawah">
+                      <input
+                        type="text"
+                        value={form.gateTagline}
+                        onChange={(e) => set("gateTagline", e.target.value)}
+                        className={inputClass}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <Field wide label="Teks footer penyelenggara (opsional)">
+              <input
+                type="text"
+                value={form.organizer}
+                onChange={(e) => set("organizer", e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+
+            {error && (
+              <p className="md:col-span-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2 mb-3">
+                {error}
+              </p>
+            )}
           </div>
 
-          <Field label="Lokasi (alamat lengkap)">
-            <textarea
-              value={form.location}
-              onChange={(e) => set("location", e.target.value)}
-              rows={2}
-              className={inputClass}
-              required
-            />
-          </Field>
-
-          <Field label="Kata kunci Google Maps (opsional)" hint="Kalau kosong, alamat lokasi dipakai untuk peta.">
-            <input
-              type="text"
-              value={form.mapsQuery}
-              onChange={(e) => set("mapsQuery", e.target.value)}
-              className={inputClass}
-            />
-          </Field>
-
-          <Field label="Maks. orang per undangan" hint="1 = undangan hanya untuk satu orang.">
-            <input
-              type="number"
-              min={1}
-              max={10}
-              value={form.maxGuests}
-              onChange={(e) => set("maxGuests", e.target.value)}
-              className={inputClass}
-            />
-          </Field>
-
-          <hr className="my-4" />
-          <p className="text-xs font-semibold text-gray-600 mb-3">
-            Konten undangan — {TYPE_LABEL[form.type]}
-          </p>
-
-          <Field label="Label di atas judul">
-            <input
-              type="text"
-              value={form.heading}
-              onChange={(e) => set("heading", e.target.value)}
-              className={inputClass}
-              placeholder={isBook ? "Launching & Bedah Buku" : "Tasyakuran Harlah ke-73"}
-            />
-          </Field>
-
-          {isBook ? (
-            <>
-              <Field label="Judul buku">
-                <input
-                  type="text"
-                  value={form.bookTitle}
-                  onChange={(e) => set("bookTitle", e.target.value)}
-                  className={inputClass}
-                  required
-                />
-              </Field>
-              <Field label="Penulis">
-                <input type="text" value={form.author} onChange={(e) => set("author", e.target.value)} className={inputClass} />
-              </Field>
-              <Field label="Sinopsis singkat">
-                <textarea value={form.synopsis} onChange={(e) => set("synopsis", e.target.value)} rows={3} className={inputClass} />
-              </Field>
-              <Field
-                label="Sampul buku (path di folder public)"
-                hint="Taruh file gambar di folder public, lalu isi path-nya, mis. /buku-cover.jpg"
-              >
-                <input type="text" value={form.cover} onChange={(e) => set("cover", e.target.value)} className={inputClass} placeholder="/buku-cover.jpg" />
-              </Field>
-              <Field label="Pembicara / pembedah" hint="Satu orang per baris, format: Nama | Peran">
-                <textarea
-                  value={form.speakers}
-                  onChange={(e) => set("speakers", e.target.value)}
-                  rows={3}
-                  className={inputClass}
-                  placeholder={"Dr. Fulan, M.A. | Pembedah\nProf. Fulanah | Penulis"}
-                />
-              </Field>
-              <Field label="Moderator">
-                <input type="text" value={form.moderator} onChange={(e) => set("moderator", e.target.value)} className={inputClass} />
-              </Field>
-              <Field label="Susunan acara" hint="Satu agenda per baris, format: Jam | Kegiatan">
-                <textarea
-                  value={form.rundown}
-                  onChange={(e) => set("rundown", e.target.value)}
-                  rows={4}
-                  className={inputClass}
-                  placeholder={"18.30 | Pembukaan\n19.00 | Launching buku\n19.30 | Bedah buku\n20.30 | Tanya jawab & tanda tangan buku"}
-                />
-              </Field>
-              <div className="mb-3 flex items-center gap-2">
-                <input
-                  id="allowPreorder"
-                  type="checkbox"
-                  checked={form.allowPreorder}
-                  onChange={(e) => set("allowPreorder", e.target.checked)}
-                />
-                <label htmlFor="allowPreorder" className="text-sm text-gray-700">
-                  Tamu bisa memesan buku lewat RSVP
-                </label>
-              </div>
-              {form.allowPreorder && (
-                <Field label="Harga buku (teks bebas, opsional)">
-                  <input type="text" value={form.bookPrice} onChange={(e) => set("bookPrice", e.target.value)} className={inputClass} placeholder="Rp 85.000" />
-                </Field>
-              )}
-            </>
-          ) : (
-            <>
-              <Field label="Judul utama" hint="Boleh lebih dari satu baris.">
-                <textarea value={form.title} onChange={(e) => set("title", e.target.value)} rows={2} className={inputClass} />
-              </Field>
-              <Field label="Flyer (path di folder public)" hint="Mis. /flyer.jpeg">
-                <input type="text" value={form.flyer} onChange={(e) => set("flyer", e.target.value)} className={inputClass} />
-              </Field>
-              <Field label="Special performance (opsional)">
-                <input type="text" value={form.performers} onChange={(e) => set("performers", e.target.value)} className={inputClass} />
-              </Field>
-              <p className="text-[11px] text-gray-400 mb-2">Teks layar pembuka (opsional — kalau kosong mengikuti judul di atas)</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3">
-                <Field label="Baris atas">
-                  <input type="text" value={form.gateEyebrow} onChange={(e) => set("gateEyebrow", e.target.value)} className={inputClass} />
-                </Field>
-                <Field label="Judul besar">
-                  <input type="text" value={form.gateTitle} onChange={(e) => set("gateTitle", e.target.value)} className={inputClass} />
-                </Field>
-                <Field label="Baris bawah">
-                  <input type="text" value={form.gateTagline} onChange={(e) => set("gateTagline", e.target.value)} className={inputClass} />
-                </Field>
-              </div>
-            </>
-          )}
-
-          <Field label="Teks footer penyelenggara (opsional)">
-            <input type="text" value={form.organizer} onChange={(e) => set("organizer", e.target.value)} className={inputClass} />
-          </Field>
-
-          {error && (
-            <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2 mb-3">{error}</p>
-          )}
-
-          <div className="flex gap-2 justify-end mt-4">
-            <button type="button" onClick={onClose} className="text-sm px-4 py-2 rounded border text-gray-600 hover:bg-gray-50">
+          {/* Footer tetap terlihat, tombol tidak ikut ter-scroll */}
+          <div className="flex gap-2 justify-end px-5 md:px-8 py-3 md:py-4 border-t shrink-0 bg-white rounded-b-lg">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm px-4 py-2 rounded border text-gray-600 hover:bg-gray-50"
+            >
               Batal
             </button>
             <button

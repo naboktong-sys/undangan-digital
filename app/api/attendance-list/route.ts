@@ -70,13 +70,25 @@ export async function GET(req: NextRequest) {
   const borderColor = rgb(0.15, 0.15, 0.15);
   const lightBorder = rgb(0.75, 0.75, 0.75);
 
-  const columns = [
-    { key: "no", label: "No.", width: 34 },
-    { key: "name", label: "Nama", width: 215 },
-    { key: "category", label: "Instansi", width: 140 },
-    { key: "sign", label: "Tanda Tangan", width: 0 },
-  ];
-  columns[3].width = pageWidth - margin * 2 - columns[0].width - columns[1].width - columns[2].width;
+  // Launching & Bedah Buku: No, Nama Lengkap, Asal Instansi, No. HP (tanpa kolom tanda tangan).
+  // Acara lain (Tasyakuran): tetap memakai kolom No, Nama, Instansi, Tanda Tangan.
+  const isBook = event.type === "BEDAH_BUKU";
+  const contentWidth = pageWidth - margin * 2;
+
+  const columns = isBook
+    ? [
+        { key: "no", label: "No.", width: 34 },
+        { key: "name", label: "Nama Lengkap", width: 175 },
+        { key: "category", label: "Asal Instansi", width: 150 },
+        { key: "phone", label: "No. HP", width: 0 },
+      ]
+    : [
+        { key: "no", label: "No.", width: 34 },
+        { key: "name", label: "Nama", width: 215 },
+        { key: "category", label: "Instansi", width: 140 },
+        { key: "sign", label: "Tanda Tangan", width: 0 },
+      ];
+  columns[3].width = contentWidth - columns[0].width - columns[1].width - columns[2].width;
 
   const colX: number[] = [];
   let acc = margin;
@@ -87,11 +99,14 @@ export async function GET(req: NextRequest) {
   const tableRight = margin + columns.reduce((s, c) => s + c.width, 0);
 
   const rows = guests.map((g, idx) => {
-    const nameLines = wrapText(g.name, font, fontSize, columns[1].width - cellPaddingX * 2);
-    const categoryLines = wrapText(g.category || "-", font, fontSize, columns[2].width - cellPaddingX * 2);
-    const maxLines = Math.max(nameLines.length, categoryLines.length, 1);
+    const nameLines = wrapText(pdfSafe(g.name), font, fontSize, columns[1].width - cellPaddingX * 2);
+    const categoryLines = wrapText(pdfSafe(g.category || "-"), font, fontSize, columns[2].width - cellPaddingX * 2);
+    const phoneLines = isBook
+      ? wrapText(pdfSafe(g.phone || "-"), font, fontSize, columns[3].width - cellPaddingX * 2)
+      : [];
+    const maxLines = Math.max(nameLines.length, categoryLines.length, phoneLines.length, 1);
     const rowHeight = Math.max(maxLines * lineHeight + rowPaddingY, 38);
-    return { index: idx + 1, nameLines, categoryLines, rowHeight };
+    return { index: idx + 1, nameLines, categoryLines, phoneLines, rowHeight };
   });
 
   function centeredFirstLineY(rowTop: number, rowHeight: number, numLines: number) {
@@ -259,6 +274,18 @@ export async function GET(req: NextRequest) {
           font,
         });
       });
+
+      if (isBook) {
+        const phoneStartY = centeredFirstLineY(rowTop, row.rowHeight, row.phoneLines.length);
+        row.phoneLines.forEach((line, i) => {
+          page.drawText(line, {
+            x: colX[3] + cellPaddingX,
+            y: phoneStartY - i * lineHeight,
+            size: fontSize,
+            font,
+          });
+        });
+      }
 
       page.drawLine({ start: { x: margin, y }, end: { x: tableRight, y }, thickness: 0.6, color: lightBorder });
     }

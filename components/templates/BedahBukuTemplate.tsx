@@ -10,11 +10,12 @@ import {
   googleMapsEmbedSrc,
   parsePairs,
 } from "@/lib/events";
-import { GuestMessages, InfoRow, type TemplateProps } from "./shared";
+import { InfoRow, type TemplateProps } from "./shared";
 
-export default function BedahBukuTemplate({ guest, event, remainingSlots, messages }: TemplateProps) {
+export default function BedahBukuTemplate({ guest, event, remainingSlots }: TemplateProps) {
   const d = getDetails(event);
-  const maxGuests = Math.max(1, Number(d.maxGuests) || 1);
+  // Bedah Buku: RSVP hanya Hadir / Tidak Hadir, satu undangan = satu orang
+  const maxGuests = 1;
 
   const heading = d.heading || "Launching & Bedah Buku";
   const bookTitle = d.bookTitle || event.name;
@@ -163,12 +164,10 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots, messag
               alreadyResponded={guest.attendance !== "PENDING"}
               remainingSlots={remainingSlots}
               maxGuests={maxGuests}
-              bookOptions={{ allowPreorder: !!d.allowPreorder, bookPrice: d.bookPrice }}
+              simple
             />
           </div>
         </section>
-
-        <GuestMessages messages={messages} />
 
         <div className="h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
         {d.organizer && (

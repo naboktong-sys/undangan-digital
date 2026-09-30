@@ -8,6 +8,7 @@ export default function RsvpForm({
   remainingSlots,
   maxGuests = 1,
   bookOptions = null,
+  simple = false,
 }: {
   slug: string;
   alreadyResponded: boolean;
@@ -16,6 +17,8 @@ export default function RsvpForm({
   maxGuests?: number;
   // diisi hanya untuk acara Launching & Bedah Buku
   bookOptions?: { allowPreorder: boolean; bookPrice?: string } | null;
+  // true = hanya pilihan Hadir / Tidak Hadir (tanpa jumlah, buku, pertanyaan, ucapan)
+  simple?: boolean;
 }) {
   const [attendance, setAttendance] = useState<"HADIR" | "TIDAK_HADIR" | null>(null);
   const [message, setMessage] = useState("");
@@ -38,13 +41,17 @@ export default function RsvpForm({
     const res = await fetch(`/api/rsvp/${slug}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        attendance,
-        message,
-        guestCount: Math.min(guestCount, maxSelectable),
-        bookQty,
-        question,
-      }),
+      body: JSON.stringify(
+        simple
+          ? { attendance, guestCount: 1 }
+          : {
+              attendance,
+              message,
+              guestCount: Math.min(guestCount, maxSelectable),
+              bookQty,
+              question,
+            }
+      ),
     });
 
     setLoading(false);
@@ -121,7 +128,7 @@ export default function RsvpForm({
         </button>
       </div>
 
-      {attendance === "HADIR" && maxSelectable > 1 && (
+      {!simple && attendance === "HADIR" && maxSelectable > 1 && (
         <div className="mb-4">
           <label className="text-base text-amber-900 font-medium block mb-1">Jumlah orang yang hadir</label>
           <select
@@ -138,7 +145,7 @@ export default function RsvpForm({
         </div>
       )}
 
-      {attendance === "HADIR" && bookOptions?.allowPreorder && (
+      {!simple && attendance === "HADIR" && bookOptions?.allowPreorder && (
         <div className="mb-4">
           <label className="text-base text-amber-900 font-medium block mb-1">
             Pesan buku (opsional){bookOptions.bookPrice ? ` — ${bookOptions.bookPrice}/eksemplar` : ""}
@@ -154,7 +161,7 @@ export default function RsvpForm({
         </div>
       )}
 
-      {attendance === "HADIR" && bookOptions && (
+      {!simple && attendance === "HADIR" && bookOptions && (
         <div className="mb-4">
           <label className="text-base text-amber-900 font-medium block mb-1">
             Pertanyaan untuk pembicara (opsional)
@@ -170,16 +177,18 @@ export default function RsvpForm({
         </div>
       )}
 
-      <div className="mb-4">
-        <label className="text-base text-amber-900 font-medium block mb-1">Ucapan & doa (opsional)</label>
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          rows={3}
-          className={inputClass}
-          placeholder="Tuliskan ucapan atau doa Anda..."
-        />
-      </div>
+      {!simple && (
+        <div className="mb-4">
+          <label className="text-base text-amber-900 font-medium block mb-1">Ucapan & doa (opsional)</label>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={3}
+            className={inputClass}
+            placeholder="Tuliskan ucapan atau doa Anda..."
+          />
+        </div>
+      )}
 
       <button
         type="submit"

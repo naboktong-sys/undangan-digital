@@ -35,11 +35,6 @@ function maskPhone(phone: string): string {
   return `${start}${"•".repeat(middleLength)}${end}`;
 }
 
-function getBookExtra(guest: Guest): { bookQty?: number; question?: string } {
-  const e = guest.extra;
-  return e && typeof e === "object" && !Array.isArray(e) ? (e as { bookQty?: number; question?: string }) : {};
-}
-
 export default function DashboardClient({
   events,
   currentEvent,
@@ -278,7 +273,7 @@ export default function DashboardClient({
         <form onSubmit={handleAddGuest} className="bg-white p-4 rounded-lg shadow-sm mb-6 flex gap-3 flex-wrap">
           <input
             type="text"
-            placeholder="Nama tamu"
+            placeholder={isBook ? "Nama lengkap" : "Nama tamu"}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="border rounded px-3 py-2 flex-1 min-w-[140px] text-sm"
@@ -286,14 +281,14 @@ export default function DashboardClient({
           />
           <input
             type="text"
-            placeholder="Kategori"
+            placeholder={isBook ? "Asal instansi" : "Kategori"}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="border rounded px-3 py-2 flex-1 min-w-[120px] text-sm"
           />
           <input
             type="text"
-            placeholder="No. WA (opsional)"
+            placeholder={isBook ? "No. HP" : "No. WA (opsional)"}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className="border rounded px-3 py-2 flex-1 min-w-[140px] text-sm"
@@ -312,15 +307,13 @@ export default function DashboardClient({
           <table className="w-full text-sm">
             <thead className="bg-gray-100 text-left">
               <tr>
-                <th className="px-3 py-2.5">Nama</th>
-                <th className="px-3 py-2.5">Kategori</th>
-                <th className="px-3 py-2.5">No. WA</th>
+                <th className="px-3 py-2.5">{isBook ? "Nama Lengkap" : "Nama"}</th>
+                <th className="px-3 py-2.5">{isBook ? "Asal Instansi" : "Kategori"}</th>
+                <th className="px-3 py-2.5">{isBook ? "No. HP" : "No. WA"}</th>
                 <th className="px-3 py-2.5">Kirim</th>
                 <th className="px-3 py-2.5">RSVP</th>
-                <th className="px-3 py-2.5">Jml</th>
-                {isBook && <th className="px-3 py-2.5">Buku</th>}
-                {isBook && <th className="px-3 py-2.5">Pertanyaan</th>}
-                <th className="px-3 py-2.5">Ucapan</th>
+                {!isBook && <th className="px-3 py-2.5">Jml</th>}
+                {!isBook && <th className="px-3 py-2.5">Ucapan</th>}
                 <th className="px-3 py-2.5">Aksi</th>
               </tr>
             </thead>
@@ -363,17 +356,10 @@ export default function DashboardClient({
                         {attendanceLabel[g.attendance]}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5">{g.guestCount ?? "-"}</td>
-                    {isBook && <td className="px-3 py-2.5">{getBookExtra(g).bookQty || "-"}</td>}
-                    {isBook && (
-                      <td
-                        className="px-3 py-2.5 max-w-[160px] truncate text-gray-500"
-                        title={getBookExtra(g).question}
-                      >
-                        {getBookExtra(g).question || "-"}
-                      </td>
+                    {!isBook && <td className="px-3 py-2.5">{g.guestCount ?? "-"}</td>}
+                    {!isBook && (
+                      <td className="px-3 py-2.5 max-w-[160px] truncate text-gray-500">{g.message || "-"}</td>
                     )}
-                    <td className="px-3 py-2.5 max-w-[160px] truncate text-gray-500">{g.message || "-"}</td>
                     <td className="px-3 py-2.5">
                       <div className="flex gap-1.5 flex-wrap">
                         <button
@@ -401,7 +387,7 @@ export default function DashboardClient({
               })}
               {guests.length === 0 && (
                 <tr>
-                  <td colSpan={isBook ? 10 : 8} className="p-6 text-center text-gray-400">
+                  <td colSpan={isBook ? 6 : 8} className="p-6 text-center text-gray-400">
                     Belum ada tamu, tambahkan lewat form di atas.
                   </td>
                 </tr>
@@ -454,11 +440,10 @@ export default function DashboardClient({
                   >
                     {g.invited ? "Terkirim" : "Belum Kirim"}
                   </button>
-                  <span>Jml Hadir: {g.guestCount ?? "-"}</span>
-                  {isBook && getBookExtra(g).bookQty ? <span>Buku: {getBookExtra(g).bookQty}</span> : null}
+                  {!isBook && <span>Jml Hadir: {g.guestCount ?? "-"}</span>}
                 </div>
 
-                {g.message && (
+                {!isBook && g.message && (
                   <p className="text-xs text-gray-500 mb-3 line-clamp-2">"{g.message}"</p>
                 )}
 
@@ -505,7 +490,7 @@ export default function DashboardClient({
           >
             <h2 className="text-lg font-semibold mb-4">Edit Tamu</h2>
             <form onSubmit={handleSaveEdit}>
-              <label className="text-xs text-gray-500 block mb-1">Nama</label>
+              <label className="text-xs text-gray-500 block mb-1">{isBook ? "Nama Lengkap" : "Nama"}</label>
               <input
                 type="text"
                 value={editName}
@@ -514,7 +499,7 @@ export default function DashboardClient({
                 required
               />
 
-              <label className="text-xs text-gray-500 block mb-1">Kategori / Instansi</label>
+              <label className="text-xs text-gray-500 block mb-1">{isBook ? "Asal Instansi" : "Kategori / Instansi"}</label>
               <input
                 type="text"
                 value={editCategory}
@@ -522,7 +507,7 @@ export default function DashboardClient({
                 className="w-full border rounded px-3 py-2 mb-3 text-sm"
               />
 
-              <label className="text-xs text-gray-500 block mb-1">No. WA</label>
+              <label className="text-xs text-gray-500 block mb-1">{isBook ? "No. HP" : "No. WA"}</label>
               <input
                 type="text"
                 value={editPhone}

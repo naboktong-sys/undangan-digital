@@ -5,7 +5,7 @@ import { getDetails, getRemainingSlots } from "@/lib/events";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { attendance, message, guestCount, bookQty, question } = await req.json();
+  const { attendance, message, guestCount } = await req.json();
 
   if (!["HADIR", "TIDAK_HADIR"].includes(attendance)) {
     return NextResponse.json({ error: "Status kehadiran tidak valid" }, { status: 400 });
@@ -21,10 +21,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
   const maxGuests = Math.max(1, Number(details.maxGuests) || 1);
 
   let count = 0;
-  let extra: Prisma.InputJsonValue | typeof Prisma.DbNull = Prisma.DbNull;
+  const extra = Prisma.DbNull;
 
   if (attendance === "HADIR") {
-    count = Math.min(maxGuests, Math.max(1, Math.floor(Number(guestCount)) || 1));
+    // Launching & Bedah Buku: RSVP hanya Hadir / Tidak Hadir → selalu 1 kursi, tanpa data tambahan
+    count =
+      event.type === "BEDAH_BUKU"
+        ? 1
+        : Math.min(maxGuests, Math.max(1, Math.floor(Number(guestCount)) || 1));
 
     const remaining = await getRemainingSlots(event.id, event.quota, guest.id);
     if (count > remaining) {
@@ -40,11 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       );
     }
 
-    if (event.type === "BEDAH_BUKU") {
-      const qty = details.allowPreorder ? Math.min(10, Math.max(0, Math.floor(Number(bookQty)) || 0)) : 0;
-      const q = typeof question === "string" ? question.trim().slice(0, 300) : "";
-      extra = { bookQty: qty, ...(q ? { question: q } : {}) };
-    }
+    // (data buku & pertanyaan tidak lagi dikumpulkan untuk acara Bedah Buku)
   }
 
   const updated = await prisma.guest.update({
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     data: {
       attendance,
       guestCount: count,
-      message: message || null,
+      message: event.type === "BEDAH_BUKU" ? null : message || null,
       extra,
       respondedAt: new Date(),
     },
