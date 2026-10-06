@@ -53,8 +53,11 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots }: Temp
 
         {d.cover && (
           <section className="px-6 pb-10">
-            <div className="max-w-[260px] mx-auto rounded-md overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-900/20">
-              <Image src={d.cover} alt={`Sampul buku ${bookTitle}`} width={800} height={1200} className="w-full h-auto" priority />
+            <div className="max-w-[360px] mx-auto rounded-md overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-900/20">
+              {/* Ketuk gambar untuk membuka ukuran penuh (teks flyer kecil di layar HP) */}
+              <a href={d.cover} target="_blank" rel="noopener noreferrer" className="block">
+                <Image src={d.cover} alt={`Flyer ${bookTitle}`} width={787} height={1052} className="w-full h-auto" priority />
+              </a>
             </div>
           </section>
         )}
@@ -168,6 +171,17 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots }: Temp
             />
           </div>
         </section>
+
+        {/* Flyer bawah (undangan + info donasi), setelah RSVP */}
+        {d.flyer && (
+          <section className="px-6 pb-12">
+            <div className="max-w-[360px] mx-auto rounded-md overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-900/20">
+              <a href={d.flyer} target="_blank" rel="noopener noreferrer" className="block">
+                <Image src={d.flyer} alt={`Undangan ${bookTitle}`} width={701} height={1052} className="w-full h-auto" />
+              </a>
+            </div>
+          </section>
+        )}
 
         <div className="h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
         {d.organizer && (

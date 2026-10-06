@@ -147,6 +147,7 @@ export default function EventModal({
             author: form.author,
             synopsis: form.synopsis,
             cover: form.cover,
+            flyer: form.flyer,
             speakers: form.speakers,
             moderator: form.moderator,
             rundown: form.rundown,
@@ -356,15 +357,28 @@ export default function EventModal({
                 </Field>
                 <Field
                   wide
-                  label="Sampul buku (path di folder public)"
-                  hint="Taruh file gambar di folder public, lalu isi path-nya, mis. /buku-cover.jpg"
+                  label="Flyer atas / sampul buku (path di folder public)"
+                  hint="Ditampilkan di bagian atas undangan. Taruh file gambar di folder public, lalu isi path-nya, mis. /flyer-bedah-buku.jpg"
                 >
                   <input
                     type="text"
                     value={form.cover}
                     onChange={(e) => set("cover", e.target.value)}
                     className={inputClass}
-                    placeholder="/buku-cover.jpg"
+                    placeholder="/flyer-bedah-buku.jpg"
+                  />
+                </Field>
+                <Field
+                  wide
+                  label="Flyer bawah (path di folder public, opsional)"
+                  hint="Ditampilkan di bagian bawah undangan, setelah form RSVP. Mis. /flyer-undangan-bedah-buku.jpg"
+                >
+                  <input
+                    type="text"
+                    value={form.flyer}
+                    onChange={(e) => set("flyer", e.target.value)}
+                    className={inputClass}
+                    placeholder="/flyer-undangan-bedah-buku.jpg"
                   />
                 </Field>
                 <Field label="Pembicara / pembedah" hint="Satu orang per baris, format: Nama | Peran">
