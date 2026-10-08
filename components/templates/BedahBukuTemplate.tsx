@@ -56,7 +56,7 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots }: Temp
             <div className="max-w-[360px] mx-auto rounded-md overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-900/20">
               {/* Ketuk gambar untuk membuka ukuran penuh (teks flyer kecil di layar HP) */}
               <a href={d.cover} target="_blank" rel="noopener noreferrer" className="block">
-                <Image src={d.cover} alt={`Flyer ${bookTitle}`} width={787} height={1052} className="w-full h-auto" priority />
+                <Image src={d.cover} alt={`Flyer ${bookTitle}`} width={1200} height={1800} className="w-full h-auto" priority />
               </a>
             </div>
           </section>

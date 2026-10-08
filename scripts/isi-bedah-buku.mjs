@@ -21,8 +21,13 @@ const newDetails = {
   heading: "Launching & Bedah Buku",
   bookTitle: "Historiografi Islam Nusantara",
   author: "Prof. Dr. KH. Said Aqil Siroj, MA. & Imam Pituduh, S.H., M.H.",
-  cover: "/historiografi-islam-nusantara-cover.jpg",
-  speakers: "Prof. Dr. KH. Said Aqil Siroj | Penulis",
+  cover: "/flyer-launching-bedah-buku.jpg",
+  speakers: [
+    "Dr. Sony H. Haribowo, M.B.A. | Keynote Speaker",
+    "Prof. Dr. KH. Said Aqil Siradj, M.A. | Narasumber",
+    "Prof. Dr. KH. Imam Ghazali, M.A. | Pembahas",
+    "Bobi Al Mahbub | Special Perform - Komika",
+  ].join("\n"),
   organizer:
     "SASNU (Yayasan Sentral Agama & Sosial Nusantara) × LPOI (Lembaga Persahabatan Ormas Islam)",
   maxGuests: 1,
