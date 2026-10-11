@@ -148,6 +148,7 @@ export default function EventModal({
             synopsis: form.synopsis,
             cover: form.cover,
             flyer: form.flyer,
+            gateTagline: form.gateTagline,
             speakers: form.speakers,
             moderator: form.moderator,
             rundown: form.rundown,
@@ -347,6 +348,19 @@ export default function EventModal({
                     className={inputClass}
                   />
                 </Field>
+                <Field
+                  wide
+                  label="Tagline layar pembuka (opsional)"
+                  hint="Tampil di bawah judul pada layar pembuka. Kalau kosong, yang tampil “oleh (penulis)”."
+                >
+                  <input
+                    type="text"
+                    value={form.gateTagline}
+                    onChange={(e) => set("gateTagline", e.target.value)}
+                    className={inputClass}
+                    placeholder="Merawat Peradaban, Menginspirasi Masa Depan"
+                  />
+                </Field>
                 <Field wide label="Sinopsis singkat">
                   <textarea
                     value={form.synopsis}
@@ -381,7 +395,7 @@ export default function EventModal({
                     placeholder="/flyer-undangan-bedah-buku.jpg"
                   />
                 </Field>
-                <Field label="Pembicara / pembedah" hint="Satu orang per baris, format: Nama | Peran">
+                <Field wide label="Pembicara / pembedah" hint="Satu orang per baris, format: Nama | Peran">
                   <textarea
                     value={form.speakers}
                     onChange={(e) => set("speakers", e.target.value)}
@@ -390,11 +404,15 @@ export default function EventModal({
                     placeholder={"Dr. Fulan, M.A. | Pembedah\nProf. Fulanah | Penulis"}
                   />
                 </Field>
-                <Field label="Susunan acara" hint="Satu agenda per baris, format: Jam | Kegiatan">
+                <Field
+                  wide
+                  label="Susunan acara"
+                  hint="Satu agenda per baris, format: Jam | Kegiatan | Keterangan (keterangan opsional, boleh lebih dari satu, pisahkan dengan |)"
+                >
                   <textarea
                     value={form.rundown}
                     onChange={(e) => set("rundown", e.target.value)}
-                    rows={5}
+                    rows={10}
                     className={inputClass}
                     placeholder={"18.30 | Pembukaan\n19.00 | Launching buku\n19.30 | Bedah buku\n20.30 | Tanya jawab & tanda tangan buku"}
                   />

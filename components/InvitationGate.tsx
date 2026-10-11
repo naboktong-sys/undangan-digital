@@ -9,6 +9,7 @@ export default function InvitationGate({
   eyebrow,
   title,
   tagline,
+  taglineClassName = "text-3xl mt-1",
   dateLabel,
   logoSrc = "/sas-logo-green.png",
   secondLogoSrc,
@@ -19,6 +20,7 @@ export default function InvitationGate({
   eyebrow: string;
   title: string;
   tagline?: string;
+  taglineClassName?: string; // ukuran/jarak teks tagline (bawaan: besar)
   dateLabel: string;
   logoSrc?: string;
   secondLogoSrc?: string; // logo kedua, ditampilkan bersebelahan dengan logo utama
@@ -45,15 +47,15 @@ export default function InvitationGate({
         {secondLogoSrc ? (
           <div className="flex items-center justify-center gap-5 mb-6">
             <div className="relative w-24 h-24">
-              <Image src={logoSrc} alt="Logo penyelenggara" fill className="object-contain" />
+              <Image src={logoSrc} alt="Logo penyelenggara" fill sizes="96px" className="object-contain" />
             </div>
             <div className="relative w-24 h-24">
-              <Image src={secondLogoSrc} alt="Logo penyelenggara" fill className="object-contain" />
+              <Image src={secondLogoSrc} alt="Logo penyelenggara" fill sizes="96px" className="object-contain" />
             </div>
           </div>
         ) : (
           <div className="relative w-32 h-20 mb-6">
-            <Image src={logoSrc} alt="Logo penyelenggara" fill className="object-contain" />
+            <Image src={logoSrc} alt="Logo penyelenggara" fill sizes="128px" className="object-contain" />
           </div>
         )}
 
@@ -67,7 +69,7 @@ export default function InvitationGate({
           {title}
         </h1>
         {tagline && (
-          <p className="text-amber-800 text-3xl mt-1 font-medium" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <p className={`text-amber-800 font-medium ${taglineClassName}`} style={{ fontFamily: "'Playfair Display', serif" }}>
             {tagline}
           </p>
         )}

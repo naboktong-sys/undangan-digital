@@ -22,7 +22,14 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots }: Temp
   const dateLabel = formatEventDate(event.startsAt);
   const timeLabel = `${formatEventTime(event.startsAt)} WIB - selesai`;
   const speakers = parsePairs(d.speakers);
-  const rundown = parsePairs(d.rundown);
+  // Format tiap baris: "Jam | Kegiatan | keterangan | keterangan ..." (keterangan opsional, boleh lebih dari satu)
+  const rundown = parsePairs(d.rundown).map((r) => {
+    const [title, ...details] = r.right
+      .split("|")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return { time: r.left, title, details };
+  });
   const calendarUrl = googleCalendarUrl({ title: `${heading}: ${bookTitle}`, start: event.startsAt, location: event.location });
 
   return (
@@ -30,7 +37,8 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots }: Temp
       guestName={guest.name}
       eyebrow={heading}
       title={bookTitle}
-      tagline={d.author ? `oleh ${d.author}` : undefined}
+      tagline={d.gateTagline || (d.author ? `oleh ${d.author}` : undefined)}
+      taglineClassName="text-xl sm:text-2xl mt-3 leading-snug"
       dateLabel={dateLabel}
       secondLogoSrc="/lpoi-logo.png"
     >
@@ -53,12 +61,21 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots }: Temp
 
         {d.cover && (
           <section className="px-6 pb-10">
-            <div className="max-w-[360px] mx-auto rounded-md overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-900/20">
+            <div className="w-full max-w-[420px] md:max-w-[520px] mx-auto rounded-md overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-900/20">
               {/* Ketuk gambar untuk membuka ukuran penuh (teks flyer kecil di layar HP) */}
               <a href={d.cover} target="_blank" rel="noopener noreferrer" className="block">
-                <Image src={d.cover} alt={`Flyer ${bookTitle}`} width={1200} height={1800} className="w-full h-auto" priority />
+                <Image
+                  src={d.cover}
+                  alt={`Flyer ${bookTitle}`}
+                  width={1400}
+                  height={2100}
+                  sizes="(min-width: 768px) 520px, 92vw"
+                  className="w-full h-auto"
+                  priority
+                />
               </a>
             </div>
+            <p className="text-center text-[11px] text-[#1c3d2e]/50 mt-2">Ketuk flyer untuk memperbesar</p>
           </section>
         )}
 
@@ -133,13 +150,18 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots }: Temp
                 {rundown.map((r, i) => (
                   <li key={i} className="pl-5 relative">
                     <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-amber-600" />
-                    {r.right ? (
+                    {r.title ? (
                       <>
-                        <p className="font-elegant-label text-amber-800 text-xs tracking-widest">{r.left}</p>
-                        <p className="text-sm text-[#1c3d2e] mt-0.5">{r.right}</p>
+                        <p className="text-base font-semibold text-amber-800 tracking-wide">{r.time}</p>
+                        <p className="text-sm font-medium text-[#1c3d2e] mt-0.5">{r.title}</p>
+                        {r.details.map((t, j) => (
+                          <p key={j} className="text-xs text-[#1c3d2e]/65 mt-0.5 leading-relaxed">
+                            {t}
+                          </p>
+                        ))}
                       </>
                     ) : (
-                      <p className="text-sm text-[#1c3d2e]">{r.left}</p>
+                      <p className="text-sm text-[#1c3d2e]">{r.time}</p>
                     )}
                   </li>
                 ))}
@@ -175,9 +197,16 @@ export default function BedahBukuTemplate({ guest, event, remainingSlots }: Temp
         {/* Flyer bawah (undangan + info donasi), setelah RSVP */}
         {d.flyer && (
           <section className="px-6 pb-12">
-            <div className="max-w-[360px] mx-auto rounded-md overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-900/20">
+            <div className="w-full max-w-[420px] md:max-w-[520px] mx-auto rounded-md overflow-hidden border border-amber-500/30 shadow-2xl shadow-amber-900/20">
               <a href={d.flyer} target="_blank" rel="noopener noreferrer" className="block">
-                <Image src={d.flyer} alt={`Undangan ${bookTitle}`} width={701} height={1052} className="w-full h-auto" />
+                <Image
+                  src={d.flyer}
+                  alt={`Undangan ${bookTitle}`}
+                  width={701}
+                  height={1052}
+                  sizes="(min-width: 768px) 520px, 92vw"
+                  className="w-full h-auto"
+                />
               </a>
             </div>
           </section>
