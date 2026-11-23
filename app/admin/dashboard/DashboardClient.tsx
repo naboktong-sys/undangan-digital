@@ -223,6 +223,12 @@ export default function DashboardClient({
           </div>
           <div className="flex items-center gap-3 md:gap-4">
             <a
+              href="/admin/pendaftaran"
+              className="text-xs md:text-sm bg-emerald-100 text-emerald-800 px-3 py-1.5 md:px-4 md:py-2 rounded hover:bg-emerald-200 whitespace-nowrap"
+            >
+              Pendaftar USG
+            </a>
+            <a
               href={`/api/attendance-list${currentEvent ? `?eventId=${currentEvent.id}` : ""}`}
               className="text-xs md:text-sm bg-black text-white px-3 py-1.5 md:px-4 md:py-2 rounded hover:bg-gray-800 whitespace-nowrap"
             >

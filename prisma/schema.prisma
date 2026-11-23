@@ -57,3 +57,39 @@ enum Attendance {
   HADIR
   TIDAK_HADIR
 }
+
+// ---------------------------------------------------------------------------
+// Pendaftaran terbuka (bukan undangan per tamu), mis. KAI - SASNU PEDULI
+// Pemeriksaan USG Abdomen. Satu link untuk semua orang, tiap orang mengisi sendiri.
+// ---------------------------------------------------------------------------
+model RegistrationEvent {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  name        String
+  startsAt    DateTime
+  location    String
+  quota       Int          @default(150)
+  isOpen      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  registrants Registrant[]
+}
+
+model Registrant {
+  id          String            @id @default(cuid())
+  eventId     String
+  event       RegistrationEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name        String
+  // Sudah dirapikan (tanpa spasi, huruf besar). "-" = bukan pensiunan KAI.
+  memberNo    String
+  institution String
+  // Tanda tangan: data URL PNG (kecil, ±5-15 KB)
+  signature   String
+  // Kunci anti-dobel: "NO:<no keanggotaan>" atau, bila "-", "NM:<nama>|<instansi>"
+  uniqueKey   String
+  attended    Boolean           @default(false)
+  attendedAt  DateTime?
+  createdAt   DateTime          @default(now())
+
+  @@unique([eventId, uniqueKey])
+  @@index([eventId, createdAt])
+}
